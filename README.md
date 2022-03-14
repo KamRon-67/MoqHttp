@@ -201,7 +201,9 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
+## 💉 **Project tests**
 
+If you want to improve the development of this project, you must, after changing or improving whatever, run the project's tests to prove that they are working.
 
 <!-- LICENSE -->
 ## License
