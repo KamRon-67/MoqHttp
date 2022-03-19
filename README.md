@@ -245,11 +245,11 @@ Use this space to list resources you find helpful and would like to give credit 
 [forks-shield]: https://img.shields.io/github/forks/KamRon-67/MoqHttp.svg?style=for-the-badge
 [forks-url]: https://img.shields.io/github/forks/KamRon-67/MoqHttp
 [stars-shield]: https://img.shields.io/github/stars/KamRon-67/MoqHttp.svg?style=for-the-badge
-[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
+[stars-url]: https://github.com/KamRon-67/MoqHttp/stargazers
 [issues-shield]: https://img.shields.io/github/issues/KamRon-67/MoqHttp.svg?style=for-the-badge
 [issues-url]: https://github.com/KamRon-67/MoqHttp/issues
 [license-shield]: https://img.shields.io/github/license/KamRon-67/MoqHttp.svg?style=for-the-badge
-[license-url]: https://github.com/KamRon-67/MoqHttp/blob/master/LICENSE.txt
+[license-url]: https://github.com/KamRon-67/MoqHttp/blob/master/LICENSE
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/othneildrew
+[linkedin-url]: https://www.linkedin.com/in/cameron-young-1b49a3b9/
 [product-screenshot]: images/screenshot.png
