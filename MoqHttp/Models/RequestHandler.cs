@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using MoqHttp.Interfaces;
 
 namespace MoqHttp.Models
@@ -36,7 +34,7 @@ namespace MoqHttp.Models
             Send(body, statusCode, headers, null);
         }
 
-        public void Send(string body, int statusCode, Dictionary<string, string> headers, Action<HttpContext> context)
+        public void Send (string body, int statusCode, Dictionary<string, string> headers, Action<HttpContext> context)
         {
             Response = new HttpResponse() { Body = body, StatusCode = statusCode, Headers = headers, Handler = context };
             RouteTable.Response = Response;

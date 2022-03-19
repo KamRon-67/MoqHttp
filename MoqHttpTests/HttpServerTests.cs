@@ -256,5 +256,15 @@ namespace MoqHttp.Test
             Assert.Equal("Deleted", await responseDelete.Content.ReadAsStringAsync());
             Assert.Equal(200, (int)responseDelete.StatusCode);
         }
+
+        [Fact]
+        public async void Get_Using_Json_Should_Work()
+        {
+            //Arrange
+            _mockServer = new HttpServer(Port);
+            _mockServer.Run();
+
+            //Act
+        }
     }
 }
