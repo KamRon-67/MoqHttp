@@ -4,7 +4,7 @@ namespace MoqHttp.Interfaces
 {
 	public interface IJsonRequestHandler
 	{
-		bool ValidatingWhenReadingJSON(string json);
+		JObject JsonObject { get; set; }
 		JObject ReadJSONFromFile(string path);
 	}
 }

@@ -1,12 +1,17 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using MoqHttp.Interfaces;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Schema;
 
 namespace MoqHttp.Models
 {
-    public class RequestHandler : IRequestHandler
+    public class RequestHandler : IRequestHandler, IJsonRequestHandler
     {
         public RouteTableItem RouteTable { get; }
         public HttpResponse Response { get; private set; }
+        public JObject JsonObject { get; set; }
 
         public RequestHandler(RouteTableItem route)
         {
@@ -38,6 +43,18 @@ namespace MoqHttp.Models
         {
             Response = new HttpResponse() { Body = body, StatusCode = statusCode, Headers = headers, Handler = context };
             RouteTable.Response = Response;
+        }
+
+        public JObject ReadJSONFromFile(string path)
+        {
+            // read JSON directly from a file
+            using (StreamReader file = File.OpenText(path))
+            using (JsonTextReader reader = new JsonTextReader(file))
+            {
+                JsonObject = (JObject)JToken.ReadFrom(reader);
+            }
+
+            return JsonObject;
         }
     }
 }
