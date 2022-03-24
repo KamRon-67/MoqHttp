@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using MoqHttp.Models;
 using HttpResponse = MoqHttp.Models.HttpResponse;
 
 namespace MoqHttp.Interfaces
 {
-    public interface IRequestHandler
+    public interface IRequestHandler : IJsonRequestHandler
     {
         RouteTableItem RouteTable { get; }
         HttpResponse Response { get; }

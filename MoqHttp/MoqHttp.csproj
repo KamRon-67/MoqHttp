@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+  <license>MIT</license>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -10,10 +11,14 @@
     <None Remove="Microsoft.AspNetCore" />
     <None Remove="Microsoft.AspNetCore.Hosting" />
     <None Remove="Microsoft.AspNetCore.Http.Abstractions" />
+    <None Remove="Newtonsoft.Json" />
+    <None Remove="Newtonsoft.Json.Schema" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.14" />
   </ItemGroup>
 </Project>
