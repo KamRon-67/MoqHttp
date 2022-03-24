@@ -4,7 +4,7 @@ using HttpResponse = MoqHttp.Models.HttpResponse;
 
 namespace MoqHttp.Interfaces
 {
-    public interface IRequestHandler
+    public interface IRequestHandler : IJsonRequestHandler
     {
         RouteTableItem RouteTable { get; }
         HttpResponse Response { get; }

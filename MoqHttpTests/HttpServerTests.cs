@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Enumeration;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MoqHttp.Test
 {
@@ -263,8 +265,36 @@ namespace MoqHttp.Test
             //Arrange
             _mockServer = new HttpServer(Port);
             _mockServer.Run();
+            var filename = "./test.json";
 
             //Act
+            _mockServer.Config.Get("/test/123").ReadJSONFromFile(filename);
+            var responseGet = await _httpClient.GetAsync($"{_address}/test/123");
+
+            _mockServer.Config.Get("/testAction/123").Send(context =>
+            {
+                context.Response.StatusCode = 200;
+                const string response = "Action Test";
+                var buffer = System.Text.Encoding.UTF8.GetBytes(response);
+                context.Response.Body.WriteAsync(buffer, 0, buffer.Length);
+            });
+            var responseGetAction = await _httpClient.GetAsync($"{_address}/testAction/123");
+            _mockServer.Dispose();
+
+            JObject JsonObject = null;
+
+            using (StreamReader file = File.OpenText(filename))
+            using (JsonTextReader reader = new(file))
+            {
+                JsonObject = (JObject)JToken.ReadFrom(reader);
+            }
+
+            //Assert
+            Assert.Equal(JsonObject.ToString(), await responseGet.Content.ReadAsStringAsync());
+            Assert.Equal(200, (int)responseGet.StatusCode);
+
+            Assert.Equal("Action Test", await responseGetAction.Content.ReadAsStringAsync());
+            Assert.Equal(200, (int)responseGetAction.StatusCode);
         }
     }
 }

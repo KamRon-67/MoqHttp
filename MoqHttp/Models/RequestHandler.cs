@@ -7,7 +7,7 @@ using Newtonsoft.Json.Schema;
 
 namespace MoqHttp.Models
 {
-    public class RequestHandler : IRequestHandler, IJsonRequestHandler
+    public class RequestHandler : IRequestHandler
     {
         public RouteTableItem RouteTable { get; }
         public HttpResponse Response { get; private set; }
@@ -45,16 +45,16 @@ namespace MoqHttp.Models
             RouteTable.Response = Response;
         }
 
-        public JObject ReadJSONFromFile(string path)
+        public void ReadJSONFromFile(string path)
         {
             // read JSON directly from a file
             using (StreamReader file = File.OpenText(path))
-            using (JsonTextReader reader = new JsonTextReader(file))
+            using (JsonTextReader reader = new(file))
             {
                 JsonObject = (JObject)JToken.ReadFrom(reader);
             }
 
-            return JsonObject;
+            Send(JsonObject.ToString(), 200, null);
         }
     }
 }
