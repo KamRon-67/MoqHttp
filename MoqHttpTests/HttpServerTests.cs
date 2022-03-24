@@ -17,13 +17,16 @@ namespace MoqHttp.Test
         private readonly Dictionary<string, string> _headers;
         private readonly HttpClient _httpClient;
         private const string Host = "localhost";
-        private const int Port = 56789;
-        private readonly string _address = $"http://{Host}:{Port}";
+        private int Port;
+        private string _address;
 
         public HttpServerTests()
         {
             //Arrange
-            _headers = new Dictionary<string, string>
+        Port = new Random().Next(0, 65534);
+        _address = $"http://{Host}:{Port}";
+
+        _headers = new Dictionary<string, string>
             {
                 {"Content-Type", "application/json"},
                 {"testHeader", "TestHeaderValue"}
