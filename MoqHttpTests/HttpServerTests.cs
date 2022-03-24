@@ -23,7 +23,7 @@ namespace MoqHttp.Test
         public HttpServerTests()
         {
             //Arrange
-        Port = new Random().Next(0, 65534);
+        Port = new Random().Next(30000, 50000);
         _address = $"http://{Host}:{Port}";
 
         _headers = new Dictionary<string, string>
