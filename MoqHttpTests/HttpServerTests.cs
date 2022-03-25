@@ -268,7 +268,7 @@ namespace MoqHttp.Test
             //Arrange
             _mockServer = new HttpServer(Port);
             _mockServer.Run();
-            var filename = "./test.json";
+            var filename = "./../../../test.json";
 
             //Act
             _mockServer.Config.Get("/test/123").ReadJSONFromFile(filename);
