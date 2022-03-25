@@ -176,7 +176,7 @@ More comming soon
 - [ ] Add Additional Templates w/ Examples
 - [ ] Add "components" document to easily copy & paste sections of the readme
 - [ ] Return xml and json
-    - [ ] Json
+    - [x] Json
     - [ ] xml
 
 See the [open issues](https://github.com/KamRon-67/MoqHttp/issues) for a full list of proposed features (and known issues).
