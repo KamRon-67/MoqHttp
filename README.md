@@ -81,7 +81,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This is a lightweight mocking tool for .net 6 plus. The goal is to stay light and easy to integrate into your project.
+This is a lightweight mocking tool for **.NET 10 plus**. The goal is to stay light and easy to integrate into your project.
 
 Here's why:
 * Your time should be focused on creating something amazing. A project that solves a problem and helps others
@@ -99,9 +99,9 @@ Of course,  your needs may be different. So I'll be adding more features shortly
 
 This section should list any major frameworks/libraries used to bootstrap your project. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
 
-* [Json.NET](https://www.newtonsoft.com/json)
-* [Json.NET Schema](https://www.newtonsoft.com/jsonschema)
-* [.Net 6](https://docs.microsoft.com/en-us/aspnet/core/?WT.mc_id=dotnet-35129-website&view=aspnetcore-6.0)
+* [.NET 10](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+* [ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/)
+* [System.Text.Json](https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/overview)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -123,7 +123,7 @@ This is an example of how to list things you need to use the software and how to
 
 ### Installation
 
-You should beable to download and run out of the box after a build. 
+You should be able to download and run out of the box after a build.
 
 
 

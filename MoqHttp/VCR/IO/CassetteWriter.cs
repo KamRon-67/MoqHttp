@@ -1,7 +1,7 @@
 using System;
 using System.IO;
+using System.Text.Json;
 using MoqHttp.VCR.Models;
-using Newtonsoft.Json;
 
 namespace MoqHttp.VCR.IO
 {
@@ -10,6 +10,11 @@ namespace MoqHttp.VCR.IO
     /// </summary>
     public class CassetteWriter
     {
+        private static readonly JsonSerializerOptions _options = new()
+        {
+            WriteIndented = true
+        };
+
         /// <summary>
         /// Save a cassette to a JSON file
         /// </summary>
@@ -37,7 +42,7 @@ namespace MoqHttp.VCR.IO
                 }
 
                 // Serialize to JSON with pretty printing
-                var json = JsonConvert.SerializeObject(cassette, Formatting.Indented);
+                var json = JsonSerializer.Serialize(cassette, _options);
 
                 // Write atomically using temp file
                 var tempFile = filePath + ".tmp";
@@ -57,3 +62,4 @@ namespace MoqHttp.VCR.IO
         }
     }
 }
+

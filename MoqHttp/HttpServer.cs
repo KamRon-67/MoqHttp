@@ -1,9 +1,10 @@
 ﻿using System.Linq;
 using System.Text;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using MoqHttp.Interfaces;
 using MoqHttp.Models;
 using MoqHttp.VCR;
@@ -16,11 +17,11 @@ namespace MoqHttp
 {
     public class HttpServer : IHttpServer
     {
-        private IWebHost _host;
+        private IHost? _host;
         private readonly string _hostname;
         private readonly int _port;
-        private Cassette _cassette;
-        private ProxyHandler _proxyHandler;
+        private Cassette? _cassette;
+        private ProxyHandler? _proxyHandler;
 
         public IRequestBuilder Config { get; set; }
 
@@ -36,49 +37,56 @@ namespace MoqHttp
             // Initialize VCR if enabled
             InitializeVCR();
 
-            _host = WebHost.CreateDefaultBuilder()
-                .UseUrls($"http://{_hostname}:{_port}")
-                .Configure(app =>
+            _host = Host.CreateDefaultBuilder()
+                .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    app.Run(async context =>
+                    webBuilder.UseUrls($"http://{_hostname}:{_port}");
+                    webBuilder.Configure(app =>
                     {
-                        var requestBuilder = Config as RequestBuilder;
-                        
-                        // VCR takes precedence over normal routing
-                        if (requestBuilder?.VCRConfig?.IsEnabled == true)
+                        app.Run(async context =>
                         {
-                            await HandleVCRRequest(context, requestBuilder.VCRConfig);
-                            return;
-                        }
-
-                        // Normal mocking logic (backward compatible)
-                        var route = Config.RouteTable?.LastOrDefault(x => x.IsMatch(context.Request));
-                        
-                        switch (route)
-                        {
-                            case null when context.Request.Path == @"/":
-                                context.Response.ContentType = "text/plain";
-                                await context.Response.WriteAsync("It Works!", Encoding.UTF8);
+                            var requestBuilder = Config as RequestBuilder;
+                            
+                            // VCR takes precedence over normal routing
+                            if (requestBuilder?.VCRConfig?.IsEnabled == true)
+                            {
+                                await HandleVCRRequest(context, requestBuilder.VCRConfig);
                                 return;
-                            case null:
-                                context.Response.StatusCode = StatusCodes.Status404NotFound;
-                                context.Response.ContentType = "text/plain";
-                                await context.Response.WriteAsync("Page not found!", Encoding.UTF8);
+                            }
+
+                            // Normal mocking logic (backward compatible)
+                            var route = Config.RouteTable?.LastOrDefault(x => x.IsMatch(context.Request));
+                            
+                            switch (route)
+                            {
+                                case null when context.Request.Path == @"/":
+                                    context.Response.ContentType = "text/plain";
+                                    await context.Response.WriteAsync("It Works!", Encoding.UTF8);
+                                    return;
+                                case null:
+                                    context.Response.StatusCode = StatusCodes.Status404NotFound;
+                                    context.Response.ContentType = "text/plain";
+                                    await context.Response.WriteAsync("Page not found!", Encoding.UTF8);
+                                    return;
+                            }
+
+                            if (route.Response?.Handler != null)
+                            {
+                                route.Response.Handler(context);
                                 return;
-                        }
+                            }
 
-                        if (route.Response.Handler != null)
-                        {
-                            route.Response.Handler(context);
-                            return;
-                        }
-
-                        var response = route.Response.Body;
-                        context.Response.StatusCode = route.Response.StatusCode;
-                        context.Response.Headers.AddRange(route.Response.Headers);
-                        await context.Response.WriteAsync(response, Encoding.UTF8).ConfigureAwait(false);
+                            var responseBody = route.Response?.Body ?? string.Empty;
+                            context.Response.StatusCode = route.Response?.StatusCode ?? 200;
+                            if (route.Response?.Headers != null)
+                            {
+                                context.Response.Headers.AddRange(route.Response.Headers);
+                            }
+                            await context.Response.WriteAsync(responseBody, Encoding.UTF8).ConfigureAwait(false);
+                        });
                     });
                 }).Build();
+            
             _host.Start();
         }
 
@@ -129,36 +137,52 @@ namespace MoqHttp
                 if (!config.RecordingFilter.ShouldRecord(context.Request))
                 {
                     // Don't record, just proxy through without saving
-                    var interaction = await _proxyHandler.ProxyRequest(context);
-                    
-                    context.Response.StatusCode = interaction.Response.Status;
-                    foreach (var header in interaction.Response.Headers)
+                    if (_proxyHandler != null)
                     {
-                        context.Response.Headers[header.Key] = header.Value;
-                    }
-                    if (!string.IsNullOrEmpty(interaction.Response.Body))
-                    {
-                        await context.Response.WriteAsync(interaction.Response.Body, Encoding.UTF8);
+                        var interaction = await _proxyHandler.ProxyRequest(context);
+                        
+                        context.Response.StatusCode = interaction.Response.Status;
+                        foreach (var header in interaction.Response.Headers)
+                        {
+                            if (header.Key.Equals("Content-Length", StringComparison.OrdinalIgnoreCase) || 
+                                header.Key.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase))
+                            {
+                                continue;
+                            }
+                            context.Response.Headers[header.Key] = header.Value;
+                        }
+                        if (!string.IsNullOrEmpty(interaction.Response.Body))
+                        {
+                            await context.Response.WriteAsync(interaction.Response.Body, Encoding.UTF8);
+                        }
                     }
                     return;
                 }
 
                 // Recording mode: proxy to real API and capture
-                var recordedInteraction = await _proxyHandler.ProxyRequest(context);
-                _cassette.Interactions.Add(recordedInteraction);
+                if (_proxyHandler != null && _cassette != null)
+                {
+                    var recordedInteraction = await _proxyHandler.ProxyRequest(context);
+                    _cassette.Interactions.Add(recordedInteraction);
 
-                // Send the captured response back to the client
-                context.Response.StatusCode = recordedInteraction.Response.Status;
-                foreach (var header in recordedInteraction.Response.Headers)
-                {
-                    context.Response.Headers[header.Key] = header.Value;
-                }
-                if (!string.IsNullOrEmpty(recordedInteraction.Response.Body))
-                {
-                    await context.Response.WriteAsync(recordedInteraction.Response.Body, Encoding.UTF8);
+                    // Send the captured response back to the client
+                    context.Response.StatusCode = recordedInteraction.Response.Status;
+                    foreach (var header in recordedInteraction.Response.Headers)
+                    {
+                        if (header.Key.Equals("Content-Length", StringComparison.OrdinalIgnoreCase) || 
+                            header.Key.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+                        context.Response.Headers[header.Key] = header.Value;
+                    }
+                    if (!string.IsNullOrEmpty(recordedInteraction.Response.Body))
+                    {
+                        await context.Response.WriteAsync(recordedInteraction.Response.Body, Encoding.UTF8);
+                    }
                 }
             }
-            else if (config.Mode == VCRMode.Playback)
+            else if (config.Mode == VCRMode.Playback && _cassette != null)
             {
                 // Phase 2: Use advanced matching configuration
                 var interaction = RequestMatcher.FindMatch(
@@ -183,6 +207,11 @@ namespace MoqHttp
                 context.Response.StatusCode = response.Status;
                 foreach (var header in response.Headers)
                 {
+                    if (header.Key.Equals("Content-Length", StringComparison.OrdinalIgnoreCase) || 
+                        header.Key.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
                     context.Response.Headers[header.Key] = header.Value;
                 }
                 if (!string.IsNullOrEmpty(response.Body))

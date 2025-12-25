@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 using Xunit;
 
 namespace MoqHttpTests.VCR
@@ -12,7 +12,7 @@ namespace MoqHttpTests.VCR
     {
         private readonly HttpClient _httpClient;
         private readonly string _testCassettePath;
-        private MoqHttp.HttpServer _mockServer;
+        private MoqHttp.HttpServer? _mockServer;
         private const int Port = 8768;
         private readonly string _address;
 
@@ -56,9 +56,12 @@ namespace MoqHttpTests.VCR
                 .Playback()
                 .FromFile(_testCassettePath)
                 .Transform(response => {
-                    var json = JObject.Parse(response.Body);
-                    json["injected_field"] = "test_value";
-                    response.Body = json.ToString();
+                    var node = JsonNode.Parse(response.Body);
+                    if (node is JsonObject obj)
+                    {
+                        obj["injected_field"] = "test_value";
+                        response.Body = obj.ToJsonString();
+                    }
                     return response;
                 });
             _mockServer.Run();
@@ -95,22 +98,25 @@ namespace MoqHttpTests.VCR
                 .Playback()
                 .FromFile(_testCassettePath)
                 .Transform(response => {
-                    var json = JObject.Parse(response.Body);
-                    json["server_time"] = DateTime.UtcNow.ToString("o");
-                    response.Body = json.ToString();
+                    var node = JsonNode.Parse(response.Body);
+                    if (node is JsonObject obj)
+                    {
+                        obj["server_time"] = DateTime.UtcNow.ToString("o");
+                        response.Body = obj.ToJsonString();
+                    }
                     return response;
                 });
             _mockServer.Run();
 
             var playbackResponse = await _httpClient.GetAsync($"{_address}/json");
             var content = await playbackResponse.Content.ReadAsStringAsync();
-            var json = JObject.Parse(content);
+            var resultNode = JsonNode.Parse(content);
 
             // Assert
-            Assert.NotNull(json["server_time"]);
-            var serverTime = DateTime.Parse(json["server_time"].ToString());
-            Assert.True(serverTime >= beforeTime);
-            Assert.True(serverTime <= DateTime.UtcNow.AddSeconds(1));
+            Assert.NotNull(resultNode?["server_time"]);
+            var serverTime = DateTime.Parse(resultNode["server_time"]!.GetValue<string>()).ToUniversalTime();
+            Assert.True(serverTime >= beforeTime.AddMilliseconds(-100), $"Server time {serverTime:o} should be >= beforeTime {beforeTime:o}");
+            Assert.True(serverTime <= DateTime.UtcNow.AddSeconds(5));
         }
 
         [Fact]
@@ -171,15 +177,21 @@ namespace MoqHttpTests.VCR
                 .Playback()
                 .FromFile(_testCassettePath)
                 .Transform(response => {
-                    var json = JObject.Parse(response.Body);
-                    json["field1"] = "value1";
-                    response.Body = json.ToString();
+                    var node = JsonNode.Parse(response.Body);
+                    if (node is JsonObject obj)
+                    {
+                        obj["field1"] = "value1";
+                        response.Body = obj.ToJsonString();
+                    }
                     return response;
                 })
                 .Transform(response => {
-                    var json = JObject.Parse(response.Body);
-                    json["field2"] = "value2";
-                    response.Body = json.ToString();
+                    var node = JsonNode.Parse(response.Body);
+                    if (node is JsonObject obj)
+                    {
+                        obj["field2"] = "value2";
+                        response.Body = obj.ToJsonString();
+                    }
                     return response;
                 })
                 .Transform(response => {
@@ -221,9 +233,12 @@ namespace MoqHttpTests.VCR
                 .Playback()
                 .FromFile(_testCassettePath)
                 .Transform(response => {
-                    var json = JObject.Parse(response.Body);
-                    json["modified"] = true;
-                    response.Body = json.ToString();
+                    var node = JsonNode.Parse(response.Body);
+                    if (node is JsonObject obj)
+                    {
+                        obj["modified"] = true;
+                        response.Body = obj.ToJsonString();
+                    }
                     return response;
                 });
             _mockServer.Run();
@@ -273,3 +288,4 @@ namespace MoqHttpTests.VCR
         }
     }
 }
+

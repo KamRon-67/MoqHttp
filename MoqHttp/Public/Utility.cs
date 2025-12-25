@@ -12,12 +12,12 @@ namespace MoqHttp
             return data != null && data.Any();
         }
 
-        public static void AddRange(this IHeaderDictionary responseHeader, Dictionary<string,string> headers )
+        public static void AddRange(this IHeaderDictionary responseHeader, Dictionary<string,string>? headers )
         {
             if (headers == null) return;
             foreach (var item in headers)
             {
-                responseHeader.Add(item.Key, item.Value);
+                responseHeader[item.Key] = item.Value;
             }
         }
     }

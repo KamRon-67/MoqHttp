@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System.Text.Json;
 
 namespace MoqHttp.Interfaces
 {
 	public interface IJsonRequestHandler
 	{
-		JObject JsonObject { get; set; }
+		JsonElement JsonObject { get; set; }
 		void ReadJSONFromFile(string path);
 	}
 }

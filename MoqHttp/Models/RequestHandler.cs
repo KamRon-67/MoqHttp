@@ -1,17 +1,17 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using MoqHttp.Interfaces;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
 
 namespace MoqHttp.Models
 {
-    public class RequestHandler : IRequestHandler
+    public class RequestHandler : IRequestHandler, IJsonRequestHandler
     {
         public RouteTableItem RouteTable { get; }
         public HttpResponse Response { get; private set; }
-        public JObject JsonObject { get; set; }
+        public JsonElement JsonObject { get; set; }
 
         public RequestHandler(RouteTableItem route)
         {
@@ -34,12 +34,12 @@ namespace MoqHttp.Models
             Send("", 200, null, context);
         }
 
-        public void Send(string body, int statusCode, Dictionary<string, string> headers)
+        public void Send(string body, int statusCode, Dictionary<string, string>? headers)
         {
             Send(body, statusCode, headers, null);
         }
 
-        public void Send (string body, int statusCode, Dictionary<string, string> headers, Action<HttpContext> context)
+        public void Send (string body, int statusCode, Dictionary<string, string>? headers, Action<HttpContext>? context)
         {
             Response = new HttpResponse() { Body = body, StatusCode = statusCode, Headers = headers, Handler = context };
             RouteTable.Response = Response;
@@ -48,13 +48,14 @@ namespace MoqHttp.Models
         public void ReadJSONFromFile(string path)
         {
             // read JSON directly from a file
-            using (StreamReader file = File.OpenText(path))
-            using (JsonTextReader reader = new(file))
+            var jsonString = File.ReadAllText(path);
+            using (var doc = JsonDocument.Parse(jsonString))
             {
-                JsonObject = (JObject)JToken.ReadFrom(reader);
+                JsonObject = doc.RootElement.Clone();
             }
 
-            Send(JsonObject.ToString(), 200, null);
+            Send(JsonObject.GetRawText(), 200, null);
         }
     }
 }
+

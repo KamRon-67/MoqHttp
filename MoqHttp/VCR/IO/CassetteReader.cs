@@ -1,7 +1,7 @@
 using System;
 using System.IO;
+using System.Text.Json;
 using MoqHttp.VCR.Models;
-using Newtonsoft.Json;
 
 namespace MoqHttp.VCR.IO
 {
@@ -10,6 +10,11 @@ namespace MoqHttp.VCR.IO
     /// </summary>
     public class CassetteReader
     {
+        private static readonly JsonSerializerOptions _options = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         /// <summary>
         /// Load a cassette from a JSON file
         /// </summary>
@@ -27,7 +32,7 @@ namespace MoqHttp.VCR.IO
             try
             {
                 var json = File.ReadAllText(filePath);
-                var cassette = JsonConvert.DeserializeObject<Cassette>(json);
+                var cassette = JsonSerializer.Deserialize<Cassette>(json, _options);
 
                 if (cassette == null)
                 {
@@ -59,3 +64,4 @@ namespace MoqHttp.VCR.IO
         }
     }
 }
+

@@ -1,7 +1,7 @@
 # MoqHttp Project Review & Feature List
 
 ## Overview
-**MoqHttp** is a lightweight, fluent HTTP mocking library for .NET 6+. It allows developers to easily spin up a local HTTP server to mock API responses or record real API interactions for consistent, fast, and offline-capable testing.
+**MoqHttp** is a lightweight, fluent HTTP mocking library for **.NET 10+**. It allows developers to easily spin up a local HTTP server to mock API responses or record real API interactions for consistent, fast, and offline-capable testing.
 
 The project is divided into two main areas: **Core Mocking** and **VCR (Video Cassette Recorder) Functionalit**.
 
@@ -31,13 +31,11 @@ The foundation of MoqHttp is its ability to simulate an HTTP server with a simpl
 ---
 
 ## Technical Details
-- **Target Framework**: .NET 6.0
+- **Target Framework**: .NET 10.0
 - **Server Engine**: ASP.NET Core Kestrel
 - **Core Dependencies**:
-  - `Microsoft.AspNetCore` (version 2.2.0)
-  - `Newtonsoft.Json` (version 13.0.1)
-  - `Newtonsoft.Json.Schema` (version 3.0.14)
-- **Note**: While targeting .NET 6, the library currently utilizes legacy ASP.NET Core 2.2 packages for its HTTP abstractions and hosting, providing a stable but older-style foundation.
+  - `Microsoft.AspNetCore.App` (Shared Framework)
+  - `System.Text.Json` (Built-in)
 
 ---
 
