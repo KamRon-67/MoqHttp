@@ -5,8 +5,17 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <ReleaseVersion>0.2</ReleaseVersion>
+    <Version>2.0.1</Version>
+    <Authors>Cameron Young</Authors>
+    <Description>A lightweight, fluent HTTP mocking and VCR library for .NET 10+.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/KamRon-67/MoqHttp</RepositoryUrl>
+    <PackageReadmeFile>README_PACKAGE.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README_PACKAGE.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
