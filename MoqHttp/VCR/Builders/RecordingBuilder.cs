@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using Microsoft.AspNetCore.Http;
 using MoqHttp.VCR.Interfaces;
 
 namespace MoqHttp.VCR.Builders
@@ -26,5 +29,25 @@ namespace MoqHttp.VCR.Builders
             _config.ProxyUrl = url;
             return this;
         }
+
+        // Phase 2: Selective Recording
+
+        public IRecordingBuilder Filter(Func<HttpRequest, bool> predicate)
+        {
+            _config.RecordingFilter.AddFilter(predicate);
+            return this;
+        }
+
+        public IRecordingBuilder OnlyMethods(params string[] methods)
+        {
+            return Filter(request => methods.Contains(request.Method, StringComparer.OrdinalIgnoreCase));
+        }
+
+        public IRecordingBuilder OnlyPaths(params string[] pathPrefixes)
+        {
+            return Filter(request => pathPrefixes.Any(prefix => 
+                request.Path.StartsWithSegments(prefix, StringComparison.OrdinalIgnoreCase)));
+        }
     }
 }
+

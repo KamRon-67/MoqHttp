@@ -125,25 +125,46 @@ namespace MoqHttp
         {
             if (config.Mode == VCRMode.Record)
             {
+                // Phase 2: Check if request should be recorded
+                if (!config.RecordingFilter.ShouldRecord(context.Request))
+                {
+                    // Don't record, just proxy through without saving
+                    var interaction = await _proxyHandler.ProxyRequest(context);
+                    
+                    context.Response.StatusCode = interaction.Response.Status;
+                    foreach (var header in interaction.Response.Headers)
+                    {
+                        context.Response.Headers[header.Key] = header.Value;
+                    }
+                    if (!string.IsNullOrEmpty(interaction.Response.Body))
+                    {
+                        await context.Response.WriteAsync(interaction.Response.Body, Encoding.UTF8);
+                    }
+                    return;
+                }
+
                 // Recording mode: proxy to real API and capture
-                var interaction = await _proxyHandler.ProxyRequest(context);
-                _cassette.Interactions.Add(interaction);
+                var recordedInteraction = await _proxyHandler.ProxyRequest(context);
+                _cassette.Interactions.Add(recordedInteraction);
 
                 // Send the captured response back to the client
-                context.Response.StatusCode = interaction.Response.Status;
-                foreach (var header in interaction.Response.Headers)
+                context.Response.StatusCode = recordedInteraction.Response.Status;
+                foreach (var header in recordedInteraction.Response.Headers)
                 {
                     context.Response.Headers[header.Key] = header.Value;
                 }
-                if (!string.IsNullOrEmpty(interaction.Response.Body))
+                if (!string.IsNullOrEmpty(recordedInteraction.Response.Body))
                 {
-                    await context.Response.WriteAsync(interaction.Response.Body, Encoding.UTF8);
+                    await context.Response.WriteAsync(recordedInteraction.Response.Body, Encoding.UTF8);
                 }
             }
             else if (config.Mode == VCRMode.Playback)
             {
-                // Playback mode: find matching interaction
-                var interaction = RequestMatcher.FindMatch(context.Request, _cassette.Interactions);
+                // Phase 2: Use advanced matching configuration
+                var interaction = RequestMatcher.FindMatch(
+                    context.Request, 
+                    _cassette.Interactions, 
+                    config.MatchingConfig);
 
                 if (interaction == null)
                 {
@@ -155,15 +176,18 @@ namespace MoqHttp
                     return;
                 }
 
+                // Phase 2: Apply response transformations
+                var response = config.ResponseTransform.Apply(interaction.Response);
+
                 // Replay recorded response
-                context.Response.StatusCode = interaction.Response.Status;
-                foreach (var header in interaction.Response.Headers)
+                context.Response.StatusCode = response.Status;
+                foreach (var header in response.Headers)
                 {
                     context.Response.Headers[header.Key] = header.Value;
                 }
-                if (!string.IsNullOrEmpty(interaction.Response.Body))
+                if (!string.IsNullOrEmpty(response.Body))
                 {
-                    await context.Response.WriteAsync(interaction.Response.Body, Encoding.UTF8);
+                    await context.Response.WriteAsync(response.Body, Encoding.UTF8);
                 }
             }
         }
