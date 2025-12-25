@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using MoqHttp.Models;
+using MoqHttp.VCR.Interfaces;
 
 namespace MoqHttp.Interfaces
 {
@@ -12,5 +13,10 @@ namespace MoqHttp.Interfaces
         IRequestHandler Delete(string url);
         IRequestHandler Request(string method, string url);
         IRequestHandler Request(string method, string url, Dictionary<string, string> headers);
+
+        // VCR Methods
+        IRecordingBuilder Record();
+        IPlaybackBuilder Playback();
+        IAutoBuilder Auto();
     }
 }

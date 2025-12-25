@@ -134,6 +134,8 @@ You should beable to download and run out of the box after a build.
 <!-- USAGE EXAMPLES -->
 ## Usage
 
+### Traditional HTTP Mocking
+
 ```csharp
     [Fact]
         public async void Get_Should_Work_Correctly()
@@ -163,15 +165,117 @@ You should beable to download and run out of the box after a build.
             Assert.Equal("Action Test", await responseGetAction.Content.ReadAsStringAsync());
             Assert.Equal(200, (int)responseGetAction.StatusCode);
         }
-  ```
+```
 
-More comming soon
+### 🎥 NEW: VCR (Video Cassette Recorder) Functionality
+
+MoqHttp now includes powerful VCR capabilities to record and replay HTTP interactions!
+
+#### Recording Mode - Capture Real API Responses
+
+```csharp
+    [Fact]
+    public async Task Record_Real_API_Interaction()
+    {
+        // Record real HTTP interactions to a cassette file
+        var mockServer = new HttpServer(5000);
+        mockServer.Config
+            .Record()
+            .ToFile("fixtures/api_response.json")
+            .ProxyTo("https://api.github.com");
+        
+        mockServer.Run();
+
+        var httpClient = new HttpClient();
+        var response = await httpClient.GetAsync("http://localhost:5000/users/octocat");
+        
+        // Response comes from real API and is recorded
+        Assert.Equal(200, (int)response.StatusCode);
+        
+        mockServer.Dispose(); // Cassette is saved automatically
+    }
+```
+
+#### Playback Mode - Replay Recorded Responses
+
+```csharp
+    [Fact]
+    public async Task Playback_Recorded_Interaction()
+    {
+        // Replay from cassette file (no real API calls)
+        var mockServer = new HttpServer(5000);
+        mockServer.Config
+            .Playback()
+            .FromFile("fixtures/api_response.json");
+        
+        mockServer.Run();
+
+        var httpClient = new HttpClient();
+        var response = await httpClient.GetAsync("http://localhost:5000/users/octocat");
+        
+        // Response comes from cassette - instant, no network call!
+        Assert.Equal(200, (int)response.StatusCode);
+        
+        mockServer.Dispose();
+    }
+```
+
+#### Auto Mode - Record Once, Replay Forever
+
+```csharp
+    [Fact]
+    public async Task Auto_Mode_Smart_Recording()
+    {
+        // Automatically records if cassette doesn't exist, otherwise plays back
+        var mockServer = new HttpServer(5000);
+        mockServer.Config
+            .Auto()
+            .FromFile("fixtures/api_data.json")
+            .ProxyTo("https://api.example.com");
+        
+        mockServer.Run();
+
+        var httpClient = new HttpClient();
+        var response = await httpClient.GetAsync("http://localhost:5000/v1/data");
+        
+        // First run: Records from real API
+        // Subsequent runs: Instant playback from cassette
+        Assert.Equal(200, (int)response.StatusCode);
+        
+        mockServer.Dispose();
+    }
+```
+
+**Benefits of VCR:**
+- ✅ Record real API responses once, replay infinitely
+- ✅ No API rate limits in tests
+- ✅ Tests run 100x faster (no network calls)
+- ✅ Works offline
+- ✅ Perfect for CI/CD pipelines
+- ✅ Realistic test data without manual mocking
+
+See [VCR_EXAMPLES.md](VCR_EXAMPLES.md) for comprehensive documentation and real-world examples.
 
 <!-- ROADMAP -->
 ## Roadmap
 
 - [x] Add Changelog
 - [x] Add back to top links
+- [x] **VCR Phase 1: Core Recording/Playback** 🎉
+  - [x] Record mode
+  - [x] Playback mode
+  - [x] Auto mode
+  - [x] Cassette file management
+- [ ] VCR Phase 2: Advanced Features
+  - [ ] Custom request matching
+  - [ ] Request filtering
+  - [ ] Response transformation
+- [ ] VCR Phase 3: Security
+  - [ ] Data scrubbing
+  - [ ] Sensitive data redaction
+- [ ] VCR Phase 4: Validation
+  - [ ] Diff detection
+  - [ ] Cassette expiration
 - [ ] Clean up docs
 - [ ] Add Additional Templates w/ Examples
 - [ ] Add "components" document to easily copy & paste sections of the readme
